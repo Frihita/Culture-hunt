@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Culture Hunt</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #F5E6C8;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 800px;
+    }
+
+    /* Start Screen Styles */
+    .start-screen {
+      text-align: center;
+      background: rgba(255, 255, 255, 0.5);
+      backdrop-filter: blur(10px);
+      padding: 60px 40px;
+      border-radius: 24px;
+      box-shadow: 0 10px 40px rgba(90, 62, 43, 0.15);
+    }
+
+    .start-screen h1 {
+      font-size: 4rem;
+      color: #5A3E2B;
+      margin-bottom: 20px;
+      font-weight: 700;
+    }
+
+    .start-screen p {
+      font-size: 1.2rem;
+      color: rgba(90, 62, 43, 0.7);
+      margin-bottom: 40px;
+      line-height: 1.6;
+    }
+
+    .start-button {
+      background-color: #5A3E2B;
+      color: white;
+      border: none;
+      padding: 18px 48px;
+      font-size: 1.3rem;
+      font-weight: 600;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 12px rgba(90, 62, 43, 0.3);
+    }
+
+    .start-button:hover {
+      background-color: #6B4D36;
+      transform: scale(1.05);
+    }
+
+    .start-button:active {
+      transform: scale(0.95);
+    }
+
+    /* Game Screen Styles */
+    .game-screen {
+      display: none;
+    }
+
+    .game-screen.active {
+      display: block;
+    }
+
+    .game-header {
+      margin-bottom: 40px;
+    }
+
+    .game-title {
+      font-size: 3rem;
+      color: #5A3E2B;
+      text-align: center;
+      margin-bottom: 30px;
+      font-weight: 700;
+    }
+
+    .game-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.5);
+      backdrop-filter: blur(10px);
+      padding: 24px;
+      border-radius: 20px;
+      box-shadow: 0 4px 20px rgba(90, 62, 43, 0.1);
+    }
+
+    .info-item {
+      text-align: center;
+    }
+
+    .info-label {
+      font-size: 0.9rem;
+      color: rgba(90, 62, 43, 0.7);
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .info-value {
+      font-size: 2.5rem;
+      color: #5A3E2B;
+      font-weight: 700;
+    }
+
+    .info-value.warning {
+      color: #dc2626;
+    }
+
+    .reset-button {
+      background-color: #5A3E2B;
+      color: white;
+      border: none;
+      padding: 16px 24px;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 3px 10px rgba(90, 62, 43, 0.2);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .reset-button:hover {
+      background-color: #6B4D36;
+      transform: scale(1.05);
+    }
+
+    .reset-button:active {
+      transform: scale(0.95);
+    }
+
+    /* Card Grid */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .card {
+      aspect-ratio: 1;
+      perspective: 1000px;
+      cursor: pointer;
+    }
+
+    .card-inner {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transition: transform 0.5s;
+      transform-style: preserve-3d;
+    }
+
+    .card.flipped .card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .card-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(90, 62, 43, 0.15);
+    }
+
+    .card-back {
+      background-color: white;
+      border: 4px solid rgba(90, 62, 43, 0.1);
+      font-size: 3rem;
+      color: rgba(90, 62, 43, 0.2);
+      font-weight: 700;
+    }
+
+    .card-front {
+      background-color: #FFF8E7;
+      border: 4px solid rgba(90, 62, 43, 0.2);
+      transform: rotateY(180deg);
+      font-size: 4rem;
+    }
+
+    .card.matched .card-front {
+      background-color: #dcfce7;
+      border-color: #86efac;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(8px);
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 48px;
+      border-radius: 24px;
+      text-align: center;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(90, 62, 43, 0.3);
+    }
+
+    .modal-title {
+      font-size: 2.5rem;
+      color: #5A3E2B;
+      margin-bottom: 16px;
+      font-weight: 700;
+    }
+
+    .modal-subtitle {
+      font-size: 1.2rem;
+      color: rgba(90, 62, 43, 0.7);
+      margin-bottom: 8px;
+    }
+
+    .modal-score {
+      font-size: 3.5rem;
+      color: #5A3E2B;
+      font-weight: 700;
+      margin-bottom: 32px;
+    }
+
+    .play-again-button {
+      background-color: #5A3E2B;
+      color: white;
+      border: none;
+      padding: 16px 32px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 12px rgba(90, 62, 43, 0.3);
+    }
+
+    .play-again-button:hover {
+      background-color: #6B4D36;
+      transform: scale(1.05);
+    }
+
+    .play-again-button:active {
+      transform: scale(0.95);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .start-screen h1 {
+        font-size: 3rem;
+      }
+
+      .game-title {
+        font-size: 2.5rem;
+      }
+
+      .card-grid {
+        gap: 12px;
+      }
+
+      .card-back {
+        font-size: 2rem;
+      }
+
+      .card-front {
+        font-size: 3rem;
+      }
+
+      .info-value {
+        font-size: 2rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .start-screen {
+        padding: 40px 24px;
+      }
+
+      .start-screen h1 {
+        font-size: 2.5rem;
+      }
+
+      .start-screen p {
+        font-size: 1rem;
+      }
+
+      .game-info {
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .reset-button span {
+        display: none;
+      }
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Start Screen -->
+    <div id="startScreen" class="start-screen">
+      <h1>🎭 Culture Hunt</h1>
+      <p>
+        Test your memory by matching pairs of cultural icons!<br>
+        Find all matches before time runs out.
+      </p>
+      <button class="start-button" onclick="startGame()">Start Game</button>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="gameScreen" class="game-screen">
+      <div class="game-header">
+        <h1 class="game-title">Culture Hunt</h1>
+        <div class="game-info">
+          <div class="info-item">
+            <div class="info-label">Time Left</div>
+            <div id="timer" class="info-value">60s</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Score</div>
+            <div id="score" class="info-value">0</div>
+          </div>
+          <button class="reset-button" onclick="resetGame()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+              <path d="M21 3v5h-5"></path>
+              <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+              <path d="M3 21v-5h5"></path>
+            </svg>
+            <span>Reset</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="cardGrid" class="card-grid"></div>
+    </div>
+
+    <!-- Game Over Modal -->
+    <div id="gameOverModal" class="modal">
+      <div class="modal-content">
+        <h2 class="modal-title">Time's Up!</h2>
+        <p class="modal-subtitle">Your Final Score</p>
+        <div id="finalScore" class="modal-score">0 / 8</div>
+        <button class="play-again-button" onclick="resetGame()">Play Again</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Game configuration
+    const ICONS = ['🎭', '🎨', '🎪', '🎬', '🎵', '📚', '🗿', '🏛️'];
+    const GAME_TIME = 60; // 60 seconds
+
+    // Game state
+    let cards = [];
+    let flippedCards = [];
+    let matchedPairs = 0;
+    let score = 0;
+    let timeLeft = GAME_TIME;
+    let timerInterval = null;
+    let isGameActive = false;
+
+    // DOM elements
+    const startScreen = document.getElementById('startScreen');
+    const gameScreen = document.getElementById('gameScreen');
+    const cardGrid = document.getElementById('cardGrid');
+    const timerDisplay = document.getElementById('timer');
+    const scoreDisplay = document.getElementById('score');
+    const gameOverModal = document.getElementById('gameOverModal');
+    const finalScoreDisplay = document.getElementById('finalScore');
+
+    // Initialize cards
+    function initializeCards() {
+      // Create pairs
+      const cardPairs = [];
+      ICONS.forEach((icon, index) => {
+        cardPairs.push({ id: index * 2, icon, isMatched: false });
+        cardPairs.push({ id: index * 2 + 1, icon, isMatched: false });
+      });
+
+      // Shuffle using Fisher-Yates algorithm
+      for (let i = cardPairs.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [cardPairs[i], cardPairs[j]] = [cardPairs[j], cardPairs[i]];
+      }
+
+      return cardPairs;
+    }
+
+    // Render cards
+    function renderCards() {
+      cardGrid.innerHTML = '';
+      cards.forEach((card, index) => {
+        const cardElement = document.createElement('div');
+        cardElement.className = 'card';
+        cardElement.dataset.index = index;
+        cardElement.innerHTML = `
+          <div class="card-inner">
+            <div class="card-face card-back">?</div>
+            <div class="card-face card-front">${card.icon}</div>
+          </div>
+        `;
+        cardElement.addEventListener('click', () => handleCardClick(index));
+        cardGrid.appendChild(cardElement);
+      });
+    }
+
+    // Start game
+    function startGame() {
+      startScreen.classList.add('hidden');
+      gameScreen.classList.add('active');
+      
+      // Initialize game state
+      cards = initializeCards();
+      flippedCards = [];
+      matchedPairs = 0;
+      score = 0;
+      timeLeft = GAME_TIME;
+      isGameActive = true;
+
+      // Update UI
+      scoreDisplay.textContent = score;
+      timerDisplay.textContent = `${timeLeft}s`;
+      timerDisplay.classList.remove('warning');
+
+      // Render cards
+      renderCards();
+
+      // Start timer
+      startTimer();
+    }
+
+    // Start timer
+    function startTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+      
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        timerDisplay.textContent = `${timeLeft}s`;
+
+        if (timeLeft <= 10) {
+          timerDisplay.classList.add('warning');
+        }
+
+        if (timeLeft <= 0) {
+          endGame();
+        }
+      }, 1000);
+    }
+
+    // Handle card click
+    function handleCardClick(index) {
+      if (!isGameActive) return;
+      if (flippedCards.length >= 2) return;
+      if (cards[index].isMatched) return;
+
+      const cardElement = cardGrid.children[index];
+      if (cardElement.classList.contains('flipped')) return;
+
+      // Flip card
+      cardElement.classList.add('flipped');
+      flippedCards.push(index);
+
+      // Check for match when two cards are flipped
+      if (flippedCards.length === 2) {
+        checkMatch();
+      }
+    }
+
+    // Check for match
+    function checkMatch() {
+      const [firstIndex, secondIndex] = flippedCards;
+      const firstCard = cards[firstIndex];
+      const secondCard = cards[secondIndex];
+
+      if (firstCard.icon === secondCard.icon) {
+        // Match found!
+        setTimeout(() => {
+          cards[firstIndex].isMatched = true;
+          cards[secondIndex].isMatched = true;
+          cardGrid.children[firstIndex].classList.add('matched');
+          cardGrid.children[secondIndex].classList.add('matched');
+          
+          matchedPairs++;
+          score++;
+          scoreDisplay.textContent = score;
+          flippedCards = [];
+
+          // Check if all pairs are matched
+          if (matchedPairs === ICONS.length) {
+            endGame();
+          }
+        }, 400);
+      } else {
+        // No match - flip back
+        setTimeout(() => {
+          cardGrid.children[firstIndex].classList.remove('flipped');
+          cardGrid.children[secondIndex].classList.remove('flipped');
+          flippedCards = [];
+        }, 800);
+      }
+    }
+
+    // End game
+    function endGame() {
+      isGameActive = false;
+      clearInterval(timerInterval);
+      finalScoreDisplay.textContent = `${score} / ${ICONS.length}`;
+      gameOverModal.classList.add('active');
+    }
+
+    // Reset game
+    function resetGame() {
+      // Hide modal
+      gameOverModal.classList.remove('active');
+      
+      // Reset to start screen
+      gameScreen.classList.remove('active');
+      startScreen.classList.remove('hidden');
+      
+      // Clear timer
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+      
+      // Reset game state
+      isGameActive = false;
+    }
+  </script>
+</body>
+</html>
